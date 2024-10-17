@@ -17,7 +17,7 @@ __CTX_VARS_NAME__ = "context_variables"
 
 
 class Swarm:
-    def __init__(self, client=None, api_key=None, api_base=None, api_version=None, deployment_name=None):
+    def __init__(self, client=None):
         if not client:
             if api_key and api_base and api_version and deployment_name:
             # Initialize the Azure OpenAI client
