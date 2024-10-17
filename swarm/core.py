@@ -6,6 +6,7 @@ from typing import List
 
 # Azure OpenAI imports
 from azure.openai import OpenAIClient
+from openai import AzureOpenAI
 from azure.identity import DefaultAzureCredential
 
 # Local imports
@@ -19,12 +20,11 @@ class Swarm:
     def __init__(self, client=None, api_key=None, api_base=None, api_version=None, deployment_name=None):
         if not client:
             # Initialize the Azure OpenAI client
-            self.client = OpenAIClient(
-                api_key=api_key,
-                base_url=api_base,
-                api_version=api_version,
-                deployment_name=deployment_name
-            )
+            self.client = AzureOpenAI(
+  api_key=os.environ["AZURE_API_KEY"],
+  azure_endpoint=os.environ["AZURE_API_BASE"],
+  api_version=os.environ["AZURE_API_VERSION"]
+)
         else:
             self.client = client
 
