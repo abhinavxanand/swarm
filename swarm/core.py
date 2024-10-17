@@ -2,32 +2,31 @@
 import copy
 import json
 from collections import defaultdict
-from typing import List, Callable, Union
+from typing import List
 
-# Package/library imports
-from openai import OpenAI
-
+# Azure OpenAI imports
+from azure.openai import OpenAIClient
+from azure.identity import DefaultAzureCredential
 
 # Local imports
 from .util import function_to_json, debug_print, merge_chunk
-from .types import (
-    Agent,
-    AgentFunction,
-    ChatCompletionMessage,
-    ChatCompletionMessageToolCall,
-    Function,
-    Response,
-    Result,
-)
+from .types import Agent, ChatCompletionMessageToolCall, Function, Response, Result
 
 __CTX_VARS_NAME__ = "context_variables"
 
 
 class Swarm:
-    def __init__(self, client=None):
+    def __init__(self, client=None, api_key=None, api_base=None, api_version=None, deployment_name=None):
         if not client:
-            client = OpenAI()
-        self.client = client
+            # Initialize the Azure OpenAI client
+            self.client = OpenAIClient(
+                api_key=api_key,
+                base_url=api_base,
+                api_version=api_version,
+                deployment_name=deployment_name
+            )
+        else:
+            self.client = client
 
     def get_chat_completion(
         self,
@@ -48,7 +47,6 @@ class Swarm:
         debug_print(debug, "Getting chat completion for...:", messages)
 
         tools = [function_to_json(f) for f in agent.functions]
-        # hide context_variables from model
         for tool in tools:
             params = tool["function"]["parameters"]
             params["properties"].pop(__CTX_VARS_NAME__, None)
@@ -66,7 +64,11 @@ class Swarm:
         if tools:
             create_params["parallel_tool_calls"] = agent.parallel_tool_calls
 
+        # Azure OpenAI call
         return self.client.chat.completions.create(**create_params)
+
+    # The rest of the code remains the same...
+
 
     def handle_function_result(self, result, debug) -> Result:
         match result:
